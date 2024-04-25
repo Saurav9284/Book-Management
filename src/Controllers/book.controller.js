@@ -5,7 +5,7 @@ const BookController = express.Router();
 
 // Create a new book
 
-BookController.post('/book', async (req, res) => {
+BookController.post('/', async (req, res) => {
     const { title, author, publicationYear } = req.body;
     if (!title || !author || !publicationYear) {
         return res.status(400).send({ msg: 'All fields are required!' });
@@ -32,7 +32,7 @@ BookController.post('/book', async (req, res) => {
 
 // Get all books
 
-BookController.get('/book', async (req, res) => {
+BookController.get('/', async (req, res) => {
     const { author, year } = req.query;
     let query = {};
 
@@ -57,7 +57,7 @@ BookController.get('/book', async (req, res) => {
 
 // Get a book by ID
 
-BookController.get('/book/:id', async (req, res) => {
+BookController.get('/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const book = await BookModel.findById(id);
@@ -73,7 +73,7 @@ BookController.get('/book/:id', async (req, res) => {
 
 // Update a book by ID
 
-BookController.patch('/book/edit/:id', async (req, res) => {
+BookController.patch('/edit/:id', async (req, res) => {
     const id = req.params.id;
     const { title, author, publicationYear } = req.body;
 
@@ -101,7 +101,7 @@ BookController.patch('/book/edit/:id', async (req, res) => {
 
 // Delete a book by ID
 
-BookController.delete('/book/delete/:id', async (req, res) => {
+BookController.delete('/delete/:id', async (req, res) => {
     const { id } = req.params;
     try {
         const deletedBook = await BookModel.findByIdAndDelete(id);

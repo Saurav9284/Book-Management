@@ -2,6 +2,7 @@ const express = require('express')
 const cors = require('cors')
 const { connection,PORT } = require('./Config/db')
 const UserController = require('./Controllers/user.controller')
+const BookController = require('./Controllers/book.controller')
 const app = express()
 
 app.use(cors())
@@ -12,7 +13,7 @@ app.get('/',(req,res)=>{
 })
 
 app.use('/user', UserController)
-
+app.use('/book', BookController)
 
 app.listen(PORT, async () => {
     try {
