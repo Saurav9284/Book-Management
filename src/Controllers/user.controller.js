@@ -2,7 +2,7 @@ const express = require('express');
 const UserModel = require('../Models/user.model');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
-const { JWT_SECERT } = require('../Config/db');
+const { JWT_SECRET } = require('../Config/db');
 
 const UserController = express.Router();
 
@@ -64,7 +64,7 @@ UserController.post('/login', async (req, res) => {
         }
         bcrypt.compare(password, user.password, function (err, result) {
             if (result) {
-                const token = jwt.sign({ userId: user._id }, JWT_SECERT);
+                const token = jwt.sign({ userId: user._id }, JWT_SECRET);
                 res.send({
                     msg: 'Login successful!',
                     token: token,
