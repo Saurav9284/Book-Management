@@ -18,4 +18,4 @@ const authorization = (req,res,next) => {
     });
 }
 
-module.exports == authorization
+module.exports = authorization
