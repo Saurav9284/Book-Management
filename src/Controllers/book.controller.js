@@ -1,12 +1,13 @@
 const express = require('express');
 const BookModel = require('../Models/book.model');
-
+const authorization = require('../Middleware/authorization')
 const BookController = express.Router();
 
 // Create a new book
 
-BookController.post('/', async (req, res) => {
+BookController.post('/',authorization, async (req, res) => {
     const { title, author, publicationYear } = req.body;
+    const userId = req.userId
     if (!title || !author || !publicationYear) {
         return res.status(400).send({ msg: 'All fields are required!' });
     }
@@ -21,7 +22,8 @@ BookController.post('/', async (req, res) => {
         const book = await BookModel.create({
             title: title,
             author: author,
-            publicationYear: publicationYear
+            publicationYear: publicationYear,
+            createrId:userId
         });
         res.status(201).send(book);
     } catch (error) {
@@ -57,7 +59,7 @@ BookController.get('/', async (req, res) => {
 
 // Get a book by ID
 
-BookController.get('/:id', async (req, res) => {
+BookController.get('/:id',authorization, async (req, res) => {
     const { id } = req.params;
     try {
         const book = await BookModel.findById(id);
@@ -71,28 +73,26 @@ BookController.get('/:id', async (req, res) => {
     }
 });
 
-// Update a book by ID
+// Update book
 
-BookController.patch('/edit/:id', async (req, res) => {
+BookController.patch('/edit/:id', authorization, async (req, res) => {
     const id = req.params.id;
+    const createrId = req.userId;
     const { title, author, publicationYear } = req.body;
 
-    if (title && typeof title !== 'string') {
-        return res.status(400).send({ msg: 'Invalid title format!' });
-    }
-    if (author && typeof author !== 'string') {
-        return res.status(400).send({ msg: 'Invalid author format!' });
-    }
-    if (publicationYear && (typeof publicationYear !== 'number' || publicationYear < 0 || publicationYear > new Date().getFullYear())) {
-        return res.status(400).send({ msg: 'Invalid publication year!' });
-    }
-
     try {
-        const updatedBook = await BookModel.findByIdAndUpdate(id, req.body, { new: true });
-        if (!updatedBook) {
-            return res.status(404).send({ msg: 'Book not found!' });
+        const book = await BookModel.findOne({ _id: id, createrId });
+        if (!book) {
+            return res.status(404).send({ msg: 'Book not found or unauthorized!' });
         }
-        res.status(200).send({ msg: 'Book updated successfully', book: updatedBook });
+
+        if (title) book.title = title;
+        if (author) book.author = author;
+        if (publicationYear) book.publicationYear = publicationYear;
+
+        await book.save();
+
+        res.status(200).send({ msg: 'Book updated successfully', book });
     } catch (error) {
         console.error(error);
         res.status(500).send({ msg: 'Internal server error!' });
@@ -101,14 +101,16 @@ BookController.patch('/edit/:id', async (req, res) => {
 
 // Delete a book by ID
 
-BookController.delete('/delete/:id', async (req, res) => {
+BookController.delete('/delete/:id', authorization, async (req, res) => {
     const { id } = req.params;
+    const createrId = req.userId;
+
     try {
-        const deletedBook = await BookModel.findByIdAndDelete(id);
-        if (!deletedBook) {
-            return res.status(404).send({ msg: 'Book not found!' });
+        const book = await BookModel.findOneAndDelete({ _id: id, createrId });
+        if (!book) {
+            return res.status(404).send({ msg: 'Book not found or unauthorized!' });
         }
-        res.status(200).send({ msg: 'Book deleted successfully', book: deletedBook });
+        res.status(200).send({ msg: 'Book deleted successfully', book });
     } catch (error) {
         console.error(error);
         res.status(500).send({ msg: 'Internal server error!' });
